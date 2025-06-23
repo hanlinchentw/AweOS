@@ -1,0 +1,31 @@
+# Ignore build artifacts
+*.bin
+*.iso
+*.img
+*.o
+*.elf
+*.map
+
+# Build folders
+/build
+
+# Editor files
+*~
+*.swp
+.DS_Store
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+
+# Logs
+*.log
+
+# Backup files
+*.bak
+
+# Ignore QEMU or GDB dumps
+core.*
+*.dump
+
