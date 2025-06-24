@@ -17,11 +17,11 @@ KERNEL_OFFSET equ 0x1000
     call switch_to_pm
     jmp $
 
-%include "boot/print.asm"
-%include "boot/32bit_print.asm"
-%include "boot/load_disk.asm"
-%include "boot/gdt.asm"
-%include "boot/switch_pm.asm"
+%include "src/boot/print.asm"
+%include "src/boot/32bit_print.asm"
+%include "src/boot/load_disk.asm"
+%include "src/boot/gdt.asm"
+%include "src/boot/switch_pm.asm"
 
 [bits 16]
 load_kernel:
