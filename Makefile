@@ -6,8 +6,8 @@
 
 ASM       := nasm
 ASMFLAGS  := -f bin
-BOOT_SRC  := ./boot/boot.asm
-BOOT_BIN  := ./boot/boot.bin
+BOOT_SRC  := boot/boot.asm
+BOOT_BIN  := boot/boot.bin
 
 all: $(BOOT_BIN)
 
