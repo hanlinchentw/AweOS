@@ -11,7 +11,7 @@ OBJ = ${C_SOURCES:.c=.o}
 CC = ${PREFIX}/bin/i686-elf-gcc
 GDB = ${PREFIX}/bin/i686-elf-gdb
 
-CFLAGS = -ffreestanding -g -gdwarf-4
+CFLAGS = -ffreestanding -gdwarf-4
 
 ASM       			:= nasm
 ASMFLAGS  			:= -f bin
