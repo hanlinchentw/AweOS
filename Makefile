@@ -11,6 +11,8 @@ OBJ = ${C_SOURCES:.c=.o}
 CC = ${PREFIX}/bin/i686-elf-gcc
 GDB = ${PREFIX}/bin/i686-elf-gdb
 
+CFLAGS = -ffreestanding -g -gdwarf-4
+
 ASM       			:= nasm
 ASMFLAGS  			:= -f bin
 
@@ -35,16 +37,20 @@ ${KERNEL_ENTRY_OBJ}: ${KERNEL_ENTRY}
 kernel.bin: ${KERNEL_ENTRY_OBJ} ${OBJ}
 	i686-elf-ld -o kernel.bin -Ttext 0x1000 $^ --oformat binary
 
-kernel.elf: kernel_entry.o ${OBJ}
+kernel.elf: ${KERNEL_ENTRY_OBJ} ${OBJ}
 	i686-elf-ld -o kernel.elf -Ttext 0x1000 $^
 
 run: os-image.bin
 	qemu-system-i386 -fda os-image.bin
 
+debug: os-image.bin kernel.elf
+	qemu-system-i386 -s -fda os-image.bin &
+	${GDB} -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
+
 # Generic rules for wildcards
 # To make an object, always compile from its .c
 %.o: %.c ${HEADERS}
-	${CC} ${CFLAGS} -ffreestanding -c $< -o $@
+	${CC} ${CFLAGS} -c $< -o $@
 
 %.o: %.asm
 	nasm $< -f elf -o $@
