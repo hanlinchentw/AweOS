@@ -4,53 +4,40 @@
 #   make run        → assemble + run in QEMU
 #   make clean      → remove artifacts
 
-C_SOURCES = $(wildcard src/kernel/*.c src/drivers/*.c)
-HEADERS = $(wildcard src/kernel/*.h src/drivers/*.h)
-OBJ = ${C_SOURCES:.c=.o}
+C_SOURCES = $(wildcard src/kernel/*.c src/drivers/*.c src/cpu/*.c)
+HEADERS = $(wildcard src/kernel/*.h src/drivers/*.h src/cpu/*.h)
+OBJ = $(C_SOURCES:.c=.o) src/cpu/interrupt.o
 
-CC = ${PREFIX}/bin/i686-elf-gcc
-GDB = ${PREFIX}/bin/i686-elf-gdb
+CC = i386-elf-gcc
+GDB = i386-elf-gdb
 
-CFLAGS = -ffreestanding -gdwarf-4
+CFLAGS = -g
 
-ASM       			:= nasm
-ASMFLAGS  			:= -f bin
-
-BOOT_DIR  			:= src/boot
-KERNEL_DIR  		:= src/kernel
-
-BOOT_SRC  			:= ${BOOT_DIR}/boot.asm
-BOOT_BIN       		:= ${BOOT_DIR}/boot.bin
-KERNEL_ENTRY		:= ${BOOT_DIR}/kernel_entry.asm
-KERNEL_ENTRY_OBJ	:= ${BOOT_DIR}/kernel_entry.o
-KERNEL_SRC			:= ${KERNEL_DIR}/kernel.c
-
-os-image.bin: ${BOOT_BIN} kernel.bin
+# First rule is run by default
+os-image.bin: src/boot/boot.bin kernel.bin
 	cat $^ > os-image.bin
 
-${BOOT_BIN}: ${BOOT_SRC}
-	nasm -f bin $< -o ${BOOT_BIN}
+# '--oformat binary' deletes all symbols as a collateral, so we don't need
+# to 'strip' them manually on this case
+kernel.bin: src/boot/kernel_entry.o ${OBJ}
+	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
-${KERNEL_ENTRY_OBJ}: ${KERNEL_ENTRY}
-	nasm -f elf $< -o ${KERNEL_ENTRY_OBJ}
-
-kernel.bin: ${KERNEL_ENTRY_OBJ} ${OBJ}
-	i686-elf-ld -o kernel.bin -Ttext 0x1000 $^ --oformat binary
-
-kernel.elf: ${KERNEL_ENTRY_OBJ} ${OBJ}
-	i686-elf-ld -o kernel.elf -Ttext 0x1000 $^
+# Used for debugging purposes
+kernel.elf: src/boot/kernel_entry.o ${OBJ}
+	i386-elf-ld -o $@ -Ttext 0x1000 $^ 
 
 run: os-image.bin
 	qemu-system-i386 -fda os-image.bin
 
+# Open the connection to qemu and load our kernel-object file with symbols
 debug: os-image.bin kernel.elf
-	qemu-system-i386 -s -fda os-image.bin &
+	qemu-system-i386 -s -fda os-image.bin -d guest_errors,int &
 	${GDB} -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
 
 # Generic rules for wildcards
 # To make an object, always compile from its .c
 %.o: %.c ${HEADERS}
-	${CC} ${CFLAGS} -c $< -o $@
+	${CC} ${CFLAGS} -ffreestanding -c $< -o $@
 
 %.o: %.asm
 	nasm $< -f elf -o $@
@@ -60,6 +47,6 @@ debug: os-image.bin kernel.elf
 
 clean:
 	rm -rf *.bin *.dis *.o os-image.bin *.elf
-	rm -rf src/kernel/*.o src/boot/*.bin src/drivers/*.o src/boot/*.o	
+	rm -rf src/kernel/*.o src/boot/*.bin src/drivers/*.o src/boot/*.o	 src/cpu/*.o
 
 .PHONY: all run clean
