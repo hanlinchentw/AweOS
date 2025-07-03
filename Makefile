@@ -4,12 +4,12 @@
 #   make run        → assemble + run in QEMU
 #   make clean      → remove artifacts
 
-C_SOURCES = $(wildcard src/kernel/*.c src/drivers/*.c src/cpu/*.c)
-HEADERS = $(wildcard src/kernel/*.h src/drivers/*.h src/cpu/*.h)
+C_SOURCES = $(wildcard src/kernel/*.c src/drivers/*.c src/cpu/*.c src/libc/*.c)
+HEADERS = $(wildcard src/kernel/*.h src/drivers/*.h src/cpu/*.h src/libc/*.h)
 OBJ = $(C_SOURCES:.c=.o) src/cpu/interrupt.o
 
-CC = i386-elf-gcc
-GDB = i386-elf-gdb
+CC = i686-elf-gcc
+GDB = i686-elf-gdb
 
 CFLAGS = -g
 
@@ -20,11 +20,11 @@ os-image.bin: src/boot/boot.bin kernel.bin
 # '--oformat binary' deletes all symbols as a collateral, so we don't need
 # to 'strip' them manually on this case
 kernel.bin: src/boot/kernel_entry.o ${OBJ}
-	i386-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
+	i686-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
 # Used for debugging purposes
 kernel.elf: src/boot/kernel_entry.o ${OBJ}
-	i386-elf-ld -o $@ -Ttext 0x1000 $^ 
+	i686-elf-ld -o $@ -Ttext 0x1000 $^ 
 
 run: os-image.bin
 	qemu-system-i386 -fda os-image.bin
