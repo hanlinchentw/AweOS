@@ -11,7 +11,8 @@ OBJ = $(C_SOURCES:.c=.o) src/cpu/interrupt.o
 CC = i686-elf-gcc
 GDB = i686-elf-gdb
 
-CFLAGS = -g
+CFLAGS = -g -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs \
+		 -Wall -Wextra -Werror
 
 # First rule is run by default
 os-image.bin: src/boot/boot.bin kernel.bin
