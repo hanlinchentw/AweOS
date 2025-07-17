@@ -1,34 +1,30 @@
-## Makefile for AweOS 
-# Targets:
-#   make            → assemble boot.bin
-#   make run        → assemble + run in QEMU
-#   make clean      → remove artifacts
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c cpu/*.c libc/*.c)
+HEADERS = $(wildcard kernel/*.h drivers/*.h cpu/*.h libc/*.h)
+# Nice syntax for file extension replacement
+OBJ = ${C_SOURCES:.c=.o cpu/interrupt.o} 
 
-C_SOURCES = $(wildcard src/kernel/*.c src/drivers/*.c src/cpu/*.c src/libc/*.c)
-HEADERS = $(wildcard src/kernel/*.h src/drivers/*.h src/cpu/*.h src/libc/*.h)
-OBJ = $(C_SOURCES:.c=.o) src/cpu/interrupt.o
-
+# Change this if your cross-compiler is somewhere else
 CC = i686-elf-gcc
 GDB = i686-elf-gdb
-
-CFLAGS = -g -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs \
+# -g: Use debugging symbols in gcc
+CFLAGS = -g0 -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs \
 		 -Wall -Wextra -Werror
 
 # First rule is run by default
-os-image.bin: src/boot/boot.bin kernel.bin
+os-image.bin: boot/bootsect.bin kernel.bin
 	cat $^ > os-image.bin
 
 # '--oformat binary' deletes all symbols as a collateral, so we don't need
 # to 'strip' them manually on this case
-kernel.bin: src/boot/kernel_entry.o ${OBJ}
+kernel.bin: boot/kernel_entry.o ${OBJ}
 	i686-elf-ld -o $@ -Ttext 0x1000 $^ --oformat binary
 
 # Used for debugging purposes
-kernel.elf: src/boot/kernel_entry.o ${OBJ}
+kernel.elf: boot/kernel_entry.o ${OBJ}
 	i686-elf-ld -o $@ -Ttext 0x1000 $^ 
 
 run: os-image.bin
-	qemu-system-i386 -fda os-image.bin -usb -device usb-mouse -device usb-kbd
+	qemu-system-i386 -fda os-image.bin
 
 # Open the connection to qemu and load our kernel-object file with symbols
 debug: os-image.bin kernel.elf
@@ -48,6 +44,4 @@ debug: os-image.bin kernel.elf
 
 clean:
 	rm -rf *.bin *.dis *.o os-image.bin *.elf
-	rm -rf src/kernel/*.o src/boot/*.bin src/drivers/*.o src/boot/*.o	 src/cpu/*.o
-
-.PHONY: all run clean
+	rm -rf kernel/*.o boot/*.bin drivers/*.o boot/*.o cpu/*.o libc/*.o

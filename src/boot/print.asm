@@ -1,4 +1,3 @@
-; print.asm
 print:
     pusha
 
