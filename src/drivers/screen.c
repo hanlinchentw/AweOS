@@ -91,8 +91,8 @@ int print_char(char c, int col, int row, char attr)
    {
       int i;
       for (i = 1; i < MAX_ROWS; i++) {
-         char *source = (char *)get_offset(0, i) + VIDEO_ADDRESS;
-         char *dest = (char *)get_offset(0, i - 1) + VIDEO_ADDRESS;
+         unsigned char *source = (unsigned char *)get_offset(0, i) + VIDEO_ADDRESS;
+         unsigned char *dest = (unsigned char *)get_offset(0, i - 1) + VIDEO_ADDRESS;
          int nbytes = MAX_COLS * 2;
          memory_copy(source, dest, nbytes);
       }
@@ -137,7 +137,7 @@ void clear_screen()
 {
    int screen_size = MAX_COLS * MAX_ROWS;
    int i;
-   char *screen = (unsigned char *)VIDEO_ADDRESS;
+   unsigned char *screen = (unsigned char *)VIDEO_ADDRESS;
 
    for (i = 0; i < screen_size; i++)
    {
